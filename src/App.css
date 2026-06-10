@@ -1,0 +1,232 @@
+.page-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 42px 24px 64px;
+  box-sizing: border-box;
+}
+
+.hero-block {
+  margin-bottom: 30px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--display-font);
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+h1 {
+  margin: 6px 0 8px;
+  font-family: var(--display-font);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--ink-heavy);
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 620px;
+  color: var(--ink-soft);
+}
+
+.entry-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(8px);
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.entry-header {
+  margin-bottom: 16px;
+}
+
+h2 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 1.4rem;
+  color: var(--ink-heavy);
+}
+
+.entry-header p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+}
+
+/* ===== Global config row ===== */
+.global-config-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(33, 25, 117, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 4px;
+}
+
+.global-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.global-config-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.global-config-input {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 9px 12px;
+  color: var(--ink-heavy);
+  font: 600 1rem var(--body-font);
+  transition: border-color 150ms;
+}
+
+.global-config-input:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+  border-color: var(--teal);
+}
+
+.global-config-hint {
+  font-size: 0.75rem;
+  color: var(--teal);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+@media (max-width: 560px) {
+  .global-config-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Mago hint ===== */
+.mago-hint {
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+  margin-bottom: 2px;
+}
+
+.mago-hint a {
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mago-hint a:hover {
+  opacity: 0.8;
+}
+
+/* ===== Ticket form ===== */
+.ticket-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.text-input-wrap {
+  width: 100%;
+}
+
+.ticket-textarea {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px;
+  color: var(--ink-heavy);
+  font: 500 0.95rem/1.5 var(--body-font);
+  min-height: 260px;
+  resize: vertical;
+}
+
+.ticket-textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+.ticket-form button {
+  border: 0;
+  border-radius: 14px;
+  background: var(--indigo);
+  color: #fff;
+  font: 700 0.9rem var(--display-font);
+  letter-spacing: 0.06em;
+  min-height: 46px;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ticket-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(31, 20, 102, 0.24);
+}
+
+.ticket-form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.form-actions button:nth-child(2) {
+  background: var(--teal);
+}
+
+.parse-error {
+  margin: 10px 0 0;
+  color: #8a1728;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.parse-success {
+  margin: 10px 0 0;
+  color: #0b6f49;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 950px) {
+  .form-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    padding: 24px 14px 40px;
+  }
+
+  .ticket-textarea {
+    min-height: 230px;
+  }
+}
