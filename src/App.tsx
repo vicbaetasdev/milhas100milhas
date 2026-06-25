@@ -8,14 +8,10 @@ type Ticket = {
   id: string
   from: string
   to: string
+  companhia: string
   miles: number
   approxReais: number
   dates: string[]
-}
-
-type GlobalConfig = {
-  companhia: string
-  valorMilheiro: number | null  // valor em R$ de 1.000 milhas
 }
 
 
@@ -35,23 +31,24 @@ function toNumber(raw: string): number {
 function parseTicketsFromText(rawText: string): Ticket[] {
   const normalizedText = rawText.replace(/\r\n/g, '\n')
   const pattern =
-    /ID PASSAGEM:\s*(\d+)\s*\nDe:\s*([^\n]+)\s*\nPara:\s*([^\n]+)\s*\nA partir de:\s*([\d.]+)\s*milhas(?:\s*\nMais ou menos:\s*R\$\s*([\d.,]+))?(?:\s*\nDatas:\s*([^\n]+))?/g
+    /ID PASSAGEM:\s*(\d+)\s*\nDe:\s*([^\n]+)\s*\nPara:\s*([^\n]+)\s*(?:\nCompanhia:\s*([^\n]+))?\s*\nA partir de:\s*([\d.]+)\s*milhas(?:\s*\nMais ou menos:\s*R\$\s*([\d.,]+))?(?:\s*\nDatas:\s*([^\n]+))?/g
 
   const parsed: Ticket[] = []
   for (const match of normalizedText.matchAll(pattern)) {
     const id = match[1].trim()
     const from = match[2].trim()
     const to = match[3].trim()
-    const miles = Number(match[4].replace(/\./g, ''))
-    const approxReais = match[5] ? toNumber(match[5]) : 0
-    const datesRaw = match[6] ?? ''
+    const companhia = match[4]?.trim() ?? ''
+    const miles = Number(match[5].replace(/\./g, ''))
+    const approxReais = match[6] ? toNumber(match[6]) : 0
+    const datesRaw = match[7] ?? ''
     const dates = datesRaw
       ? datesRaw.split(',').map((d) => d.trim()).filter(Boolean).slice(0, 3)
       : []
 
     if (Number.isNaN(miles)) continue
 
-    parsed.push({ id, from, to, miles, approxReais, dates })
+    parsed.push({ id, from, to, companhia, miles, approxReais, dates })
   }
 
   return parsed
@@ -131,13 +128,8 @@ async function createCardPng(
   ticket: Ticket,
   logo: HTMLImageElement,
   fundo: HTMLImageElement,
-  config: GlobalConfig,
 ): Promise<Blob> {
-  // Calcula reais: se valorMilheiro estiver definido, usa a fórmula; senão, usa o valor do texto
-  const reais =
-    config.valorMilheiro != null
-      ? (ticket.miles / 1000) * config.valorMilheiro
-      : ticket.approxReais
+  const reais = ticket.approxReais
   const W = 1200
   const H = 1200
   const canvas = document.createElement('canvas')
@@ -322,23 +314,23 @@ async function createCardPng(
   }
 
   // ── Rodapé: companhia aérea
-  if (config.companhia) {
+  if (ticket.companhia) {
     const footerY = boxY + boxH + 46
     ctx.textAlign = 'left'
     ctx.font = '700 34px "Barlow Condensed", sans-serif'
     ctx.fillStyle = '#55607a'
-    ctx.fillText(`✈  COMPANHIA AÉREA: ${config.companhia.toUpperCase()}`, innerLeft, footerY)
+    ctx.fillText(`✈  COMPANHIA AÉREA: ${ticket.companhia.toUpperCase()}`, innerLeft, footerY)
   }
 
   return canvasToBlob(canvas)
 }
 
-async function buildCardsZip(tickets: Ticket[], config: GlobalConfig): Promise<Blob> {
+async function buildCardsZip(tickets: Ticket[]): Promise<Blob> {
   const [logo, fundo] = await Promise.all([loadImage(logoUrl), loadImage(fundoUrl)])
   const zip = new JSZip()
 
   for (const ticket of tickets) {
-    const image = await createCardPng(ticket, logo, fundo, config)
+    const image = await createCardPng(ticket, logo, fundo)
     const fileName = `card-${ticket.id}-${ticket.from}-${ticket.to}`
       .toLowerCase()
       .replace(/\s+/g, '-')
@@ -349,24 +341,13 @@ async function buildCardsZip(tickets: Ticket[], config: GlobalConfig): Promise<B
   return zip.generateAsync({ type: 'blob' })
 }
 
-function parseMilheiro(raw: string): number | null {
-  if (!raw.trim()) return null
-  const n = Number(raw.trim().replace(/\./g, '').replace(',', '.'))
-  return Number.isFinite(n) && n > 0 ? n : null
-}
-
 function App() {
   const [formText, setFormText] = useState('')
-  const [companhia, setCompanhia] = useState('')
-  const [milheiro, setMilheiro] = useState('')
   const [parseError, setParseError] = useState('')
   const [parseSuccess, setParseSuccess] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
 
   const parsedTickets = useMemo(() => parseTicketsFromText(formText), [formText])
-  const valorMilheiro = useMemo(() => parseMilheiro(milheiro), [milheiro])
-
-  const globalConfig: GlobalConfig = { companhia, valorMilheiro }
 
   const handleGenerate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -393,7 +374,7 @@ function App() {
       setParseError('')
       setParseSuccess('Gerando arquivo ZIP dos cards...')
 
-      const zipBlob = await buildCardsZip(parsedTickets, globalConfig)
+      const zipBlob = await buildCardsZip(parsedTickets)
       const fileName = `cards-passagens-${new Date().toISOString().slice(0, 10)}.zip`
       downloadBlob(zipBlob, fileName)
 
@@ -425,32 +406,6 @@ function App() {
         </div>
 
         <form className="ticket-form" onSubmit={handleGenerate}>
-          <div className="global-config-row">
-            <label className="global-config-field">
-              <span className="global-config-label">Companhia Aérea</span>
-              <input
-                className="global-config-input"
-                value={companhia}
-                onChange={(e) => setCompanhia(e.target.value)}
-                placeholder="Ex: LATAM"
-              />
-            </label>
-            <label className="global-config-field">
-              <span className="global-config-label">Valor do Milheiro (R$)</span>
-              <input
-                className="global-config-input"
-                value={milheiro}
-                onChange={(e) => setMilheiro(e.target.value)}
-                placeholder="Ex: 25,00"
-              />
-              {valorMilheiro != null && (
-                <span className="global-config-hint">
-                  Reais = milhas ÷ 1.000 × R$ {valorMilheiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              )}
-            </label>
-          </div>
-
           <div className="mago-hint">
             <span>Cole aqui a mensagem gerada pelo Mago das Milhas — </span>
             <a
